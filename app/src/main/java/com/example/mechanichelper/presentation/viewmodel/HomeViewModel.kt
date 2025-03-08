@@ -1,0 +1,71 @@
+package com.example.mechanichelper.presentation.viewmodel
+
+import android.content.Context
+import android.net.Uri
+import androidx.core.content.FileProvider
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.mechanichelper.domain.PhotoRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.io.File
+import javax.inject.Inject
+
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val photoRepository: PhotoRepository,
+    @ApplicationContext private val context: Context
+) : ViewModel() {
+
+    private val _carMileage = MutableStateFlow("0")
+    val carMileage: StateFlow<String> = _carMileage.asStateFlow()
+
+    private val _recommendation = MutableStateFlow("")
+    val recommendation: StateFlow<String> = _recommendation.asStateFlow()
+
+    private val _photoUri = MutableStateFlow<Uri?>(null)
+    val photoUri: StateFlow<Uri?> = _photoUri.asStateFlow()
+
+    init {
+        loadLastPhoto()
+        updateRecommendation()
+    }
+
+    fun updateMileage(newMileage: String) {
+        _carMileage.value = newMileage
+        updateRecommendation()
+    }
+
+    private fun updateRecommendation() {
+        val mileage = _carMileage.value.toIntOrNull() ?: 0
+        _recommendation.value = when {
+            mileage < 5000 -> "Проверяйте уровень жидкостей регулярно"
+            mileage in 5000..15000 -> "Замена масла и фильтров"
+            mileage in 15000..30000 -> "Диагностика тормозной системы"
+            mileage in 30000..50000 -> "Комплексное ТО"
+            else -> "Полное техническое обслуживание"
+        }
+    }
+
+    fun takePhoto() {
+        viewModelScope.launch {
+            val file = photoRepository.createImageFile()
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                file
+            )
+            _photoUri.value = uri
+        }
+    }
+
+    fun loadLastPhoto() {
+        viewModelScope.launch {
+            _photoUri.value = photoRepository.getLastSavedPhotoUri()
+        }
+    }
+}
