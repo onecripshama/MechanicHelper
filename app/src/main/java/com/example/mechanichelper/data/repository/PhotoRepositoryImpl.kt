@@ -32,6 +32,7 @@ class PhotoRepositoryImpl @Inject constructor(
 
     override fun getLastSavedPhotoUri(): Uri? {
         val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
         val files = directory?.listFiles { file ->
             file.name.startsWith("CAR_") && file.extension.equals("jpg", true)
         }?.sortedByDescending { it.lastModified() }

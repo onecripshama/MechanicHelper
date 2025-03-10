@@ -26,20 +26,24 @@ fun HomeScreen(carName: String, initialMileage: String) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val context = LocalContext.current
 
-    // Состояния
     val photoUri by viewModel.photoUri.collectAsState()
     val carMileage by viewModel.carMileage.collectAsState()
     val recommendation by viewModel.recommendation.collectAsState()
 
-    // Лаунчер для камеры
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
         if (success) viewModel.loadLastPhoto()
     }
 
+    LaunchedEffect(photoUri) {
+        photoUri?.let { uri ->
+            if (uri.toString().contains("file")) {
+                cameraLauncher.launch(uri)
+            }
+        }
+    }
 
-    // Лаунчер для разрешений
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->

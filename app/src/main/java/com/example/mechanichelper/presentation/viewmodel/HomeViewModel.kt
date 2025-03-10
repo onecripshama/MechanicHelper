@@ -2,12 +2,14 @@ package com.example.mechanichelper.presentation.viewmodel
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mechanichelper.domain.PhotoRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,19 +55,32 @@ class HomeViewModel @Inject constructor(
 
     fun takePhoto() {
         viewModelScope.launch {
-            val file = photoRepository.createImageFile()
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.provider",
-                file
-            )
-            _photoUri.value = uri
+            try {
+                // Сброс значения перед созданием нового файла
+                _photoUri.value = null
+
+                val file = photoRepository.createImageFile()
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+
+                // Устанавливаем новый URI с временной меткой
+                _photoUri.value = Uri.parse("$uri?t=${System.currentTimeMillis()}")
+            } catch (e: Exception) {
+                Log.e("Camera", "Error: ${e.message}")
+            }
         }
     }
 
     fun loadLastPhoto() {
         viewModelScope.launch {
-            _photoUri.value = photoRepository.getLastSavedPhotoUri()
+            // Добавляем задержку для обхода кэша файловой системы
+            delay(150)
+            _photoUri.value = photoRepository.getLastSavedPhotoUri()?.let {
+                Uri.parse("$it?t=${System.currentTimeMillis()}")
+            }
         }
     }
 }
