@@ -46,7 +46,7 @@ class HomeViewModel @Inject constructor(
         _recommendation.value = when {
             mileage < 5000 -> "Проверяйте уровень жидкостей регулярно"
             mileage in 5000..15000 -> "Замена масла и фильтров"
-            mileage in 15000..30000 -> "Диагностика тормозной системы"
+            mileage in 15000..30000 -> "Диагностика тормозной системы и замена масла и фильтров"
             mileage in 30000..50000 -> "Комплексное ТО"
             else -> "Полное техническое обслуживание"
         }
@@ -55,7 +55,8 @@ class HomeViewModel @Inject constructor(
     fun takePhoto() {
         viewModelScope.launch {
             try {
-                // Сброс значения перед созданием нового файла
+                photoRepository.deleteLastPhoto()
+                // сброс значения перед созданием нового файла
                 _photoUri.value = null
 
                 val file = photoRepository.createImageFile()
@@ -65,7 +66,6 @@ class HomeViewModel @Inject constructor(
                     file
                 )
 
-                // Устанавливаем новый URI с временной меткой
                 _photoUri.value = Uri.parse("$uri?t=${System.currentTimeMillis()}")
             } catch (e: Exception) {
                 Log.e("Camera", "Error: ${e.message}")
@@ -75,7 +75,7 @@ class HomeViewModel @Inject constructor(
 
     fun loadLastPhoto() {
         viewModelScope.launch {
-            // Добавляем задержку для обхода кэша файловой системы
+            // Задержка для обхода кэша файловой системы
             delay(150)
             _photoUri.value = photoRepository.getLastSavedPhotoUri()?.let {
                 Uri.parse("$it?t=${System.currentTimeMillis()}")
