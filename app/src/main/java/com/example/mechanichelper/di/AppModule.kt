@@ -1,11 +1,14 @@
 package com.example.mechanichelper.di
 
+import android.content.Context
 import com.example.mechanichelper.data.api.PartsApi
+import com.example.mechanichelper.data.preferences.PreferencesManager
 import com.example.mechanichelper.data.repository.PhotoRepositoryImpl
 import com.example.mechanichelper.domain.PhotoRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -14,6 +17,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+    @Provides
+    @Singleton
+    fun providePreferencesManager(@ApplicationContext context: Context): PreferencesManager {
+        return PreferencesManager(context)
+    }
 
     @Provides
     @Singleton

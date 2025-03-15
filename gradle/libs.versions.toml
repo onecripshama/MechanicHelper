@@ -1,7 +1,9 @@
 [versions]
+accompanistSystemuicontrollerVersion = "<version>"
 agp = "8.7.0"
 coilCompose = "2.6.0"
 converterGson = "2.9.0"
+googleAccompanistSystemuicontroller = "0.28.0"
 hiltAndroidCompiler = "2.51.1"
 hiltNavigationCompose = "1.2.0"
 kotlin = "2.0.0"
@@ -17,10 +19,12 @@ navigationCompose = "2.8.7"
 retrofitVersion = "2.9.0"
 
 [libraries]
+accompanist-systemuicontroller-v0280 = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "googleAccompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontrollerVersion" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroidCompiler" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

@@ -43,6 +43,7 @@ android {
 }
 
 dependencies {
+    implementation (libs.accompanist.systemuicontroller.v0280)
     implementation(libs.coil.compose)
     implementation (libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
