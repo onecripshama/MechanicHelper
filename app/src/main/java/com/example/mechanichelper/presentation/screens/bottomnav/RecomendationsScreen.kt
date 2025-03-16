@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -12,12 +13,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.mechanichelper.presentation.viewmodel.RecommendationsViewModel
 
 @Composable
-fun RecommendationsScreen() {
-    var recommendations by remember { mutableStateOf(listOf<String>()) }
+fun RecommendationsScreen(
+    recommendationsViewModel: RecommendationsViewModel = hiltViewModel()
+) {
+    val recommendations by recommendationsViewModel.recommendations.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var recommendationText by remember { mutableStateOf("") }
     var selectedRecommendations by remember { mutableStateOf(setOf<Int>()) }
@@ -27,7 +31,11 @@ fun RecommendationsScreen() {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text("Рекомендации", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.headlineMedium)
+        Text(
+            "Рекомендации",
+            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.headlineMedium
+        )
         Spacer(modifier = Modifier.height(16.dp))
         LazyColumn(
             modifier = Modifier
@@ -76,9 +84,7 @@ fun RecommendationsScreen() {
         if (selectedRecommendations.isNotEmpty()) {
             Button(
                 onClick = {
-                    recommendations = recommendations.filterIndexed { index, _ ->
-                        !selectedRecommendations.contains(index)
-                    }
+                    recommendationsViewModel.deleteRecommendations(selectedRecommendations.toList())
                     selectedRecommendations = emptySet()
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -100,7 +106,6 @@ fun RecommendationsScreen() {
         }
     }
 
-
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
@@ -117,11 +122,11 @@ fun RecommendationsScreen() {
             confirmButton = {
                 Button(
                     colors = ButtonDefaults.buttonColors(
-                        MaterialTheme.colorScheme.onTertiaryContainer
+                        containerColor = MaterialTheme.colorScheme.onTertiaryContainer
                     ),
                     onClick = {
                         if (recommendationText.isNotBlank()) {
-                            recommendations = recommendations + recommendationText
+                            recommendationsViewModel.addRecommendation(recommendationText)
                             recommendationText = ""
                         }
                         showDialog = false
@@ -134,19 +139,13 @@ fun RecommendationsScreen() {
                 TextButton(
                     colors = ButtonDefaults.buttonColors(
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                    onClick = { showDialog = false },
-
-                )
-                {
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    ),
+                    onClick = { showDialog = false }
+                ) {
                     Text("Отмена")
                 }
             }
         )
     }
-}
-@Preview
-@Composable
-fun Prev (){
-    RecommendationsScreen()
 }

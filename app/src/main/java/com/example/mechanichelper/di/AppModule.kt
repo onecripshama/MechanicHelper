@@ -4,7 +4,9 @@ import android.content.Context
 import com.example.mechanichelper.data.api.PartsApi
 import com.example.mechanichelper.data.preferences.PreferencesManager
 import com.example.mechanichelper.data.repository.PhotoRepositoryImpl
+import com.example.mechanichelper.data.repository.RecommendationsRepositoryImpl
 import com.example.mechanichelper.domain.PhotoRepository
+import com.example.mechanichelper.domain.RecommendationsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,6 +19,15 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideRecommendationsRepository(
+        @ApplicationContext context: Context
+    ): RecommendationsRepository {
+        return RecommendationsRepositoryImpl(context)
+    }
+
     @Provides
     @Singleton
     fun providePreferencesManager(@ApplicationContext context: Context): PreferencesManager {
