@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mechanichelper.presentation.navigation.AppNavigation
-import com.example.mechanichelper.presentation.viewmodel.ThemeViewModel
+import com.example.mechanichelper.presentation.viewmodel.SettingsViewModel
 import com.example.mechanichelper.ui.theme.MechanicHelperTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,15 +21,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val themeViewModel: ThemeViewModel = hiltViewModel()
-            val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+            val settingsViewModel: SettingsViewModel = hiltViewModel()
+            val isDarkTheme by settingsViewModel.isDarkTheme.collectAsState()
 
             MechanicHelperTheme(darkTheme = isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(themeViewModel = themeViewModel)
+                    AppNavigation(settingsViewModel = settingsViewModel)
                 }
             }
         }

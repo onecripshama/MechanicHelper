@@ -10,10 +10,10 @@ import com.example.mechanichelper.presentation.screens.auth.LoginScreen
 import com.example.mechanichelper.presentation.screens.bottomnav.MainScreen
 import com.example.mechanichelper.presentation.screens.settings.SettingsScreen
 import com.example.mechanichelper.presentation.screens.auth.SignUpScreen
-import com.example.mechanichelper.presentation.viewmodel.ThemeViewModel
+import com.example.mechanichelper.presentation.viewmodel.SettingsViewModel
 
 @Composable
-fun AppNavigation(themeViewModel: ThemeViewModel) {
+fun AppNavigation(settingsViewModel: SettingsViewModel) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { LoginScreen(navController) }
@@ -25,7 +25,7 @@ fun AppNavigation(themeViewModel: ThemeViewModel) {
             MainScreen(mainNavController = navController, carName = carName, carMileage = carMileage)
         }
         composable("settings") {
-            SettingsScreen(navController = navController, themeViewModel = themeViewModel)
+            SettingsScreen(navController = navController, settingsViewModel = settingsViewModel)
         }
         composable("developer") { DeveloperScreen(navController = navController) }
     }

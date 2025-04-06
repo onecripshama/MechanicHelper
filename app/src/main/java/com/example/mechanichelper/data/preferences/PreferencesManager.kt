@@ -15,4 +15,10 @@ class PreferencesManager(context: Context) {
     fun isDarkTheme(): Boolean {
         return sharedPreferences.getBoolean("dark_theme", false)
     }
+
+    fun saveSearchHistory(history: List<String>) {
+        sharedPreferences.edit {
+            putStringSet("search_history", history.toSet())
+        }
+    }
 }

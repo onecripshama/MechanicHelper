@@ -7,6 +7,7 @@ import com.example.mechanichelper.data.repository.PhotoRepositoryImpl
 import com.example.mechanichelper.data.repository.RecommendationsRepositoryImpl
 import com.example.mechanichelper.domain.PhotoRepository
 import com.example.mechanichelper.domain.RecommendationsRepository
+import com.example.mechanichelper.presentation.viewmodel.PartsViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,6 +20,15 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun providePartsViewModel(
+        partsApi: PartsApi,
+        preferencesManager: PreferencesManager
+    ): PartsViewModel {
+        return PartsViewModel(partsApi, preferencesManager)
+    }
 
     @Provides
     @Singleton

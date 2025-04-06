@@ -14,15 +14,24 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +48,7 @@ fun PartsScreen(
     val hasError by viewModel.hasError
     val hasSearched by viewModel.hasSearched
     val showNoResults by viewModel.showNoResults
+    val isSearching by viewModel.isSearching.collectAsState()
 
     Column(
         modifier = Modifier
@@ -53,6 +63,7 @@ fun PartsScreen(
 
         SearchField(
             searchQuery = searchQuery,
+            searchHistory = viewModel.searchHistory,
             onValueChange = viewModel::updateSearchQuery,
             onSearch = {
                 viewModel.search()
@@ -71,39 +82,75 @@ fun PartsScreen(
             hasError = hasError,
             hasSearched = hasSearched,
             showNoResults = showNoResults,
+            isSearching = isSearching,
             onRetry = viewModel::search
         )
     }
 }
 
+
+
 @Composable
 private fun SearchField(
     searchQuery: String,
+    searchHistory: List<String>,
     onValueChange: (String) -> Unit,
     onSearch: () -> Unit,
     onClear: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
+
     Column(modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = searchQuery,
-            onValueChange = onValueChange,
-            label = { Text("Поиск запчастей") },
-            singleLine = true,
-            trailingIcon = {
-                IconButton(onClick = onSearch) {
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        contentDescription = "Поиск"
-                    )
-                }
+            onValueChange = { newText ->
+                onValueChange(newText)
+                expanded = newText.isEmpty()
             },
-            modifier = Modifier.fillMaxWidth()
+            label = { Text("Поиск запчастей") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focusState ->
+                    expanded = focusState.isFocused
+                            && searchQuery.isEmpty()
+                            && searchHistory.isNotEmpty()
+                },
+            trailingIcon = {
+                IconButton(onClick = {
+                    onSearch()
+                    focusManager.clearFocus()
+                    expanded = false
+                }) {
+                    Icon(Icons.Filled.Search, "Поиск")
+                }
+            }
         )
 
+        DropdownMenu(
+            expanded = expanded && searchHistory.isNotEmpty(),
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth(0.85f)
+        ) {
+            searchHistory.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item) },
+                    onClick = {
+                        onValueChange(item)
+                        onSearch()
+                        expanded = false
+                    }
+                )
+            }
+        }
+
         if (searchQuery.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(8.dp))
             Button(
-                onClick = onClear,
+                onClick = {
+                    onClear()
+                    expanded = false
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Очистить")
@@ -118,12 +165,24 @@ private fun ContentState(
     hasError: Boolean,
     hasSearched: Boolean,
     showNoResults: Boolean,
+    isSearching: Boolean,
     onRetry: () -> Unit
 ) {
     when {
+        isSearching -> LoadingSection()
         hasError -> ErrorRetrySection(onRetry = onRetry)
         showNoResults -> NoResultsSection()
         parts.isNotEmpty() || !hasSearched -> PartsList(parts = parts)
+    }
+}
+
+@Composable
+private fun LoadingSection() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
     }
 }
 

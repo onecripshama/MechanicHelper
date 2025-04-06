@@ -8,12 +8,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.mechanichelper.presentation.viewmodel.ThemeViewModel
+import com.example.mechanichelper.presentation.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController, themeViewModel: ThemeViewModel) {
-    val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+fun SettingsScreen(navController: NavController, settingsViewModel: SettingsViewModel) {
+    val isDarkTheme by settingsViewModel.isDarkTheme.collectAsState()
 
     Scaffold(
         topBar = {
@@ -42,8 +42,14 @@ fun SettingsScreen(navController: NavController, themeViewModel: ThemeViewModel)
                 Text("Темная тема")
                 Switch(
                     checked = isDarkTheme,
-                    onCheckedChange = { themeViewModel.toggleTheme(it) }
+                    onCheckedChange = { settingsViewModel.toggleTheme(it) }
                 )
+            }
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { settingsViewModel.clearSearchHistory() }
+            ) {
+                Text("Очистить историю поиска")
             }
         }
     }

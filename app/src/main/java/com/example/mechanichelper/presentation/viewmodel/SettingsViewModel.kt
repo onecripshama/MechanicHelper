@@ -12,9 +12,14 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ThemeViewModel @Inject constructor(
-    private val preferencesManager: PreferencesManager
+class SettingsViewModel @Inject constructor(
+    private val preferencesManager: PreferencesManager,
+    private val partsViewModel: PartsViewModel
 ) : ViewModel() {
+
+    fun clearSearchHistory() {
+        partsViewModel.clearSearchHistory()
+    }
 
     private val _isDarkTheme = MutableStateFlow(preferencesManager.isDarkTheme())
     val isDarkTheme: StateFlow<Boolean> = _isDarkTheme.asStateFlow()
