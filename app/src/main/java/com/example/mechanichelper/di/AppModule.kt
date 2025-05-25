@@ -1,6 +1,7 @@
 package com.example.mechanichelper.di
 
 import android.content.Context
+import com.example.mechanichelper.auth.AuthApi
 import com.example.mechanichelper.data.api.PartsApi
 import com.example.mechanichelper.data.preferences.PreferencesManager
 import com.example.mechanichelper.data.repository.PhotoRepositoryImpl
@@ -20,6 +21,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideAuthApi(retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
+
 
     @Provides
     @Singleton
