@@ -3,6 +3,7 @@ accompanistSystemuicontrollerVersion = "<version>"
 agp = "8.7.0"
 coilCompose = "2.6.0"
 converterGson = "2.9.0"
+datastorePreferencesVersion = "1.1.7"
 googleAccompanistSystemuicontroller = "0.28.0"
 hiltAndroidCompiler = "2.51.1"
 hiltNavigationCompose = "1.2.0"
@@ -21,6 +22,7 @@ retrofitVersion = "2.9.0"
 [libraries]
 accompanist-systemuicontroller-v0280 = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "googleAccompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferencesVersion" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }

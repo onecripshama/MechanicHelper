@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">MechanicHelper</string>
+    <string name="profile_title">Профиль</string>
+    <string name="profile_default_login">Пользователь</string>
+    <string name="profile_settings">Изменить настройки</string>
+    <string name="profile_about_developer">О разработчике</string>
+    <string name="profile_avatar_cd">Аватар пользователя</string>
 </resources>

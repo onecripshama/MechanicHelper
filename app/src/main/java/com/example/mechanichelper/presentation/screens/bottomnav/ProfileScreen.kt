@@ -7,18 +7,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mechanichelper.R
+import com.example.mechanichelper.presentation.viewmodel.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(onSettingsClick: () -> Unit, onDeveloperClick:() -> Unit) {
+fun ProfileScreen(
+    onSettingsClick: () -> Unit,
+    onDeveloperClick: () -> Unit,
+    viewModel: ProfileViewModel = viewModel()
+) {
+    val profile by viewModel.profile.collectAsState()
+
+    val displayLogin = profile.login.ifBlank { stringResource(R.string.profile_default_login) }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Профиль") },
+                title = { Text(stringResource(R.string.profile_title)) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
@@ -42,29 +56,30 @@ fun ProfileScreen(onSettingsClick: () -> Unit, onDeveloperClick:() -> Unit) {
             ) {
                 Icon(
                     imageVector = Icons.Default.Person,
-                    contentDescription = "Аватар",
+                    contentDescription = stringResource(R.string.profile_avatar_cd),
                     tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(60.dp)
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Имя Фамилия", style = MaterialTheme.typography.headlineSmall)
+            Text(
+                text = displayLogin,
+                style = MaterialTheme.typography.headlineSmall
+            )
             Spacer(modifier = Modifier.height(8.dp))
-            Text("email@example.com", style = MaterialTheme.typography.bodyMedium)
-            Spacer(modifier = Modifier.height(24.dp))
 
             OutlinedButton(
                 onClick = onSettingsClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Изменить настройки")
+                Text(stringResource(R.string.profile_settings))
             }
             OutlinedButton(
                 onClick = onDeveloperClick,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("О разработчике")
+                Text(stringResource(R.string.profile_about_developer))
             }
         }
     }
