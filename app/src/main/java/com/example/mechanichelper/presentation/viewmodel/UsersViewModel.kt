@@ -4,8 +4,8 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mechanichelper.data.api.Part
-import com.example.mechanichelper.data.api.PartsApi
+import com.example.mechanichelper.data.api.User
+import com.example.mechanichelper.data.api.UsersApi
 import com.example.mechanichelper.data.preferences.PreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -16,16 +16,16 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class PartsViewModel @Inject constructor(
-    private val partsApi: PartsApi,
+class UsersViewModel @Inject constructor(
+    private val usersApi: UsersApi,
     private val prefs: PreferencesManager
 ) : ViewModel() {
 
     private val _searchQuery = mutableStateOf("")
     val searchQuery: State<String> = _searchQuery
 
-    private val _parts = mutableStateOf<List<Part>>(emptyList())
-    val parts: State<List<Part>> = _parts
+    private val _users = mutableStateOf<List<User>>(emptyList())
+    val users: State<List<User>> = _users
 
     private val _hasError = mutableStateOf(false)
     val hasError: State<Boolean> = _hasError
@@ -54,20 +54,20 @@ class PartsViewModel @Inject constructor(
             _isSearching.value = true
             try {
                 val response = if (_searchQuery.value.isNotBlank()) {
-                    partsApi.searchParts(_searchQuery.value).also {
+                    usersApi.searchUsers(_searchQuery.value).also {
                         addToHistory(_searchQuery.value)
                     }
                 } else {
-                    partsApi.getAllParts()
+                    usersApi.getAllUsers()
                 }
-                _parts.value = response.products
+                _users.value = response.users
                 _hasError.value = false
             } catch (e: Exception) {
-                _parts.value = emptyList()
+                _users.value = emptyList()
                 _hasError.value = true
             } finally {
                 _isSearching.value = false
-                _showNoResults.value = _parts.value.isEmpty() && !_hasError.value
+                _showNoResults.value = _users.value.isEmpty() && !_hasError.value
             }
         }
     }

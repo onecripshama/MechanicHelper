@@ -2,13 +2,13 @@ package com.example.mechanichelper.di
 
 import android.content.Context
 import com.example.mechanichelper.auth.AuthApi
-import com.example.mechanichelper.data.api.PartsApi
+import com.example.mechanichelper.data.api.UsersApi
 import com.example.mechanichelper.data.preferences.PreferencesManager
 import com.example.mechanichelper.data.repository.PhotoRepositoryImpl
 import com.example.mechanichelper.data.repository.RecommendationsRepositoryImpl
 import com.example.mechanichelper.domain.PhotoRepository
 import com.example.mechanichelper.domain.RecommendationsRepository
-import com.example.mechanichelper.presentation.viewmodel.PartsViewModel
+import com.example.mechanichelper.presentation.viewmodel.UsersViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,10 +31,10 @@ object AppModule {
     @Provides
     @Singleton
     fun providePartsViewModel(
-        partsApi: PartsApi,
+        usersApi: UsersApi,
         preferencesManager: PreferencesManager
-    ): PartsViewModel {
-        return PartsViewModel(partsApi, preferencesManager)
+    ): UsersViewModel {
+        return UsersViewModel(usersApi, preferencesManager)
     }
 
     @Provides
@@ -66,5 +66,5 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun providePartsApi(retrofit: Retrofit): PartsApi = retrofit.create(PartsApi::class.java)
+    fun providePartsApi(retrofit: Retrofit): UsersApi = retrofit.create(UsersApi::class.java)
 }

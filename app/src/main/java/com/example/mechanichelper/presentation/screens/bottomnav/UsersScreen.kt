@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -35,16 +36,16 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.mechanichelper.data.api.Part
-import com.example.mechanichelper.presentation.viewmodel.PartsViewModel
+import com.example.mechanichelper.data.api.User
+import com.example.mechanichelper.presentation.viewmodel.UsersViewModel
 
 @Composable
-fun PartsScreen(
-    viewModel: PartsViewModel = hiltViewModel()
+fun UsersScreen(
+    viewModel: UsersViewModel = hiltViewModel()
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val searchQuery by viewModel.searchQuery
-    val parts by viewModel.parts
+    val users by viewModel.users
     val hasError by viewModel.hasError
     val hasSearched by viewModel.hasSearched
     val showNoResults by viewModel.showNoResults
@@ -56,7 +57,7 @@ fun PartsScreen(
             .padding(32.dp)
     ) {
         Text(
-            text = "Запчасти",
+            text = "Клиенты",
             style = MaterialTheme.typography.headlineMedium
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -78,7 +79,7 @@ fun PartsScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         ContentState(
-            parts = parts,
+            users = users,
             hasError = hasError,
             hasSearched = hasSearched,
             showNoResults = showNoResults,
@@ -108,7 +109,7 @@ private fun SearchField(
                 onValueChange(newText)
                 expanded = newText.isEmpty()
             },
-            label = { Text("Поиск запчастей") },
+            label = { Text("Поиск клиентов") },
             modifier = Modifier
                 .fillMaxWidth()
                 .onFocusChanged { focusState ->
@@ -161,7 +162,7 @@ private fun SearchField(
 
 @Composable
 private fun ContentState(
-    parts: List<Part>,
+    users: List<User>,
     hasError: Boolean,
     hasSearched: Boolean,
     showNoResults: Boolean,
@@ -172,7 +173,7 @@ private fun ContentState(
         isSearching -> LoadingSection()
         hasError -> ErrorRetrySection(onRetry = onRetry)
         showNoResults -> NoResultsSection()
-        parts.isNotEmpty() || !hasSearched -> PartsList(parts = parts)
+        users.isNotEmpty() || !hasSearched -> UsersList(users = users)
     }
 }
 
@@ -218,34 +219,35 @@ private fun NoResultsSection() {
 }
 
 @Composable
-private fun PartsList(parts: List<Part>) {
+private fun UsersList(users: List<User>) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        items(parts) { part ->
-            PartItem(part = part)
+        items(users) { user ->
+            UserItem(user = user)
         }
     }
 }
 
+
 @Composable
-private fun PartItem(part: Part) {
+private fun UserItem(user: User) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = part.title,
-                style = MaterialTheme.typography.bodyLarge
+                text = "${user.firstName} ${user.lastName}",
+                style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = part.description,
+                text = user.phone,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
     }
 }
-

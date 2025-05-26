@@ -24,7 +24,7 @@ fun MainScreen(mainNavController: NavHostController, carName: String, carMileage
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(BottomNavScreen.Home.route) { HomeScreen(carName, carMileage) }
-            composable(BottomNavScreen.Parts.route) { PartsScreen() }
+            composable(BottomNavScreen.Users.route) { UsersScreen() }
             composable(BottomNavScreen.Recommendations.route) { RecommendationsScreen() }
             composable(BottomNavScreen.Profile.route) {
                 ProfileScreen(

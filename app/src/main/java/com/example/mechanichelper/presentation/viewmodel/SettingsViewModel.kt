@@ -14,11 +14,11 @@ import javax.inject.Inject
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val preferencesManager: PreferencesManager,
-    private val partsViewModel: PartsViewModel
+    private val usersViewModel: UsersViewModel
 ) : ViewModel() {
 
     fun clearSearchHistory() {
-        partsViewModel.clearSearchHistory()
+        usersViewModel.clearSearchHistory()
     }
 
     private val _isDarkTheme = MutableStateFlow(preferencesManager.isDarkTheme())
