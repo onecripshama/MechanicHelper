@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mechanichelper.R
 import com.example.mechanichelper.presentation.viewmodel.ProfileViewModel
 
@@ -23,7 +23,7 @@ import com.example.mechanichelper.presentation.viewmodel.ProfileViewModel
 fun ProfileScreen(
     onSettingsClick: () -> Unit,
     onDeveloperClick: () -> Unit,
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val profile by viewModel.profile.collectAsState()
 

@@ -1,24 +1,24 @@
 package com.example.mechanichelper.presentation.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mechanichelper.auth.ApiClient
 import com.example.mechanichelper.auth.AuthResponse
 import com.example.mechanichelper.auth.LoginRequest
 import com.example.mechanichelper.domain.UserPreferencesRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import javax.inject.Inject
 
-class LoginViewModel(
-    application: Application
-) : AndroidViewModel(application) {
-
-    private val repo = UserPreferencesRepository(application)
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val repo: UserPreferencesRepository
+) : ViewModel() {
 
     data class UiState(
         val isLoading: Boolean = false,

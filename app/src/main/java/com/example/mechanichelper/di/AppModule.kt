@@ -6,8 +6,10 @@ import com.example.mechanichelper.data.api.UsersApi
 import com.example.mechanichelper.data.preferences.PreferencesManager
 import com.example.mechanichelper.data.repository.PhotoRepositoryImpl
 import com.example.mechanichelper.data.repository.RecommendationsRepositoryImpl
+import com.example.mechanichelper.data.repository.UserPreferencesRepositoryImpl
 import com.example.mechanichelper.domain.PhotoRepository
 import com.example.mechanichelper.domain.RecommendationsRepository
+import com.example.mechanichelper.domain.UserPreferencesRepository
 import com.example.mechanichelper.presentation.viewmodel.UsersViewModel
 import dagger.Module
 import dagger.Provides
@@ -50,6 +52,12 @@ object AppModule {
     fun providePreferencesManager(@ApplicationContext context: Context): PreferencesManager {
         return PreferencesManager(context)
     }
+
+    @Provides
+    @Singleton
+    fun provideUserPreferencesRepository(
+        impl: UserPreferencesRepositoryImpl
+    ): UserPreferencesRepository = impl
 
     @Provides
     @Singleton
