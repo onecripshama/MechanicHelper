@@ -56,4 +56,8 @@ class RecommendationsRepositoryImpl @Inject constructor(
         }
         cache.value = cache.value + (carId to current.filter { it.id !in idsToDelete })
     }
+
+    override fun clearForCar(carId: String) {
+        cache.value = cache.value - carId
+    }
 }

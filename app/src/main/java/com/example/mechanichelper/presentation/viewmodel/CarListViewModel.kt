@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mechanichelper.domain.CarRepository
 import com.example.mechanichelper.domain.PhotoRepository
+import com.example.mechanichelper.domain.RecommendationsRepository
 import com.example.mechanichelper.domain.model.Car
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +24,8 @@ data class CarListItem(
 @HiltViewModel
 class CarListViewModel @Inject constructor(
     private val carRepository: CarRepository,
-    private val photoRepository: PhotoRepository
+    private val photoRepository: PhotoRepository,
+    private val recommendationsRepository: RecommendationsRepository
 ) : ViewModel() {
 
     private val refreshTrigger = MutableStateFlow(0)
@@ -75,6 +77,7 @@ class CarListViewModel @Inject constructor(
             try {
                 photoRepository.deletePhoto(id)
                 carRepository.deleteCar(id)
+                recommendationsRepository.clearForCar(id)
             } catch (_: Exception) {
                 carRepository.refresh()
             }

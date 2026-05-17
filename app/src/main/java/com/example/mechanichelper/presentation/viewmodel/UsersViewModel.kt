@@ -7,18 +7,22 @@ import androidx.lifecycle.viewModelScope
 import com.example.mechanichelper.data.api.User
 import com.example.mechanichelper.data.api.UsersApi
 import com.example.mechanichelper.data.preferences.PreferencesManager
+import com.example.mechanichelper.domain.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class UsersViewModel @Inject constructor(
     private val usersApi: UsersApi,
-    private val prefs: PreferencesManager
+    private val prefs: PreferencesManager,
+    userPreferences: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _searchQuery = mutableStateOf("")
@@ -45,6 +49,16 @@ class UsersViewModel @Inject constructor(
 
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = _isSearching.asStateFlow()
+
+    init {
+        _searchHistory.value = prefs.getSearchHistory()
+        viewModelScope.launch {
+            userPreferences.profile
+                .map { it.login }
+                .distinctUntilChanged()
+                .collect { resetForNewSession() }
+        }
+    }
 
     fun search() {
         _hasSearched.value = true
@@ -94,5 +108,17 @@ class UsersViewModel @Inject constructor(
         _searchQuery.value = ""
         _hasSearched.value = false
         _showNoResults.value = false
+        _hasError.value = false
+        _users.value = emptyList()
+    }
+
+    private fun resetForNewSession() {
+        _searchQuery.value = ""
+        _users.value = emptyList()
+        _hasError.value = false
+        _hasSearched.value = false
+        _showNoResults.value = false
+        _isSearching.value = false
+        _searchHistory.value = prefs.getSearchHistory()
     }
 }

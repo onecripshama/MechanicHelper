@@ -16,7 +16,6 @@ import com.example.mechanichelper.domain.PhotoRepository
 import com.example.mechanichelper.domain.RecommendationsRepository
 import com.example.mechanichelper.domain.RemindersRepository
 import com.example.mechanichelper.domain.UserPreferencesRepository
-import com.example.mechanichelper.presentation.viewmodel.UsersViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -58,13 +57,6 @@ object AppModule {
   @Singleton
   fun provideMechanicApi(@Named("backend") retrofit: Retrofit): MechanicApi =
       retrofit.create(MechanicApi::class.java)
-
-  @Provides
-  @Singleton
-  fun providePartsViewModel(
-      usersApi: UsersApi,
-      preferencesManager: PreferencesManager
-  ): UsersViewModel = UsersViewModel(usersApi, preferencesManager)
 
   @Provides
   @Singleton

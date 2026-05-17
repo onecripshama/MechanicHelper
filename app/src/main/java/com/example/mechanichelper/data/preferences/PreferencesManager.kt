@@ -21,4 +21,7 @@ class PreferencesManager(context: Context) {
             putStringSet("search_history", history.toSet())
         }
     }
+
+    fun getSearchHistory(): List<String> =
+        sharedPreferences.getStringSet("search_history", emptySet())?.toList().orEmpty()
 }

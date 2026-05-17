@@ -8,4 +8,5 @@ interface RecommendationsRepository {
     suspend fun refresh(carId: String)
     suspend fun addRecommendation(carId: String, recommendation: String)
     suspend fun deleteRecommendations(carId: String, ids: List<String>)
+    fun clearForCar(carId: String)
 }
