@@ -32,7 +32,7 @@ fun DeveloperScreen(navController: NavController) {
             )
         }
     ) { paddingValues ->
-        Column(//Диагностировать двигатель
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -54,7 +54,7 @@ fun DeveloperScreen(navController: NavController) {
                 }
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text("Создано студентом РТУ МИРЭА, 3 курс, группа ИКБО-26-22",
+            Text("Создано студентом РТУ МИРЭА, 4 курс, группа ИКБО-26-22",
                 style = MaterialTheme.typography.bodyLarge)
         }
     }
