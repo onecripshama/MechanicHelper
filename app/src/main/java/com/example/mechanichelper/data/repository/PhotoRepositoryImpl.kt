@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Environment
 import androidx.core.content.FileProvider
 import com.example.mechanichelper.domain.PhotoRepository
+import com.example.mechanichelper.domain.UserPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.text.SimpleDateFormat
@@ -15,21 +16,23 @@ import javax.inject.Singleton
 
 @Singleton
 class PhotoRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val userPreferences: UserPreferencesRepository
 ) : PhotoRepository {
 
     override fun createImageFile(carId: String): File {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         return File(
             context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-            "CAR_${carId}_$timestamp.jpg"
+            "${photoPrefix(carId)}$timestamp.jpg"
         ).apply { createNewFile() }
     }
 
     override fun getSavedPhotoUri(carId: String): Uri? {
         val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: return null
+        val prefix = photoPrefix(carId)
         val files = directory.listFiles { file ->
-            file.name.startsWith("CAR_${carId}_") && file.extension.equals("jpg", true)
+            file.name.startsWith(prefix) && file.extension.equals("jpg", true)
         }?.sortedByDescending { it.lastModified() }
 
         return files?.firstOrNull()?.let { file ->
@@ -43,10 +46,20 @@ class PhotoRepositoryImpl @Inject constructor(
 
     override fun deletePhoto(carId: String): Boolean {
         val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: return false
+        val prefix = photoPrefix(carId)
         val files = directory.listFiles { file ->
-            file.name.startsWith("CAR_${carId}_") && file.extension.equals("jpg", true)
+            file.name.startsWith(prefix) && file.extension.equals("jpg", true)
         }?.sortedByDescending { it.lastModified() }
 
         return files?.firstOrNull()?.delete() ?: false
+    }
+
+    private fun photoPrefix(carId: String): String {
+        val login = userPreferences.getCurrentLogin()
+        return if (login != null) {
+            "CAR_${sanitizeUserKey(login)}_${carId}_"
+        } else {
+            "CAR_${carId}_"
+        }
     }
 }

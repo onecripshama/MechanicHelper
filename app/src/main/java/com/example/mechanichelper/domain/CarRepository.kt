@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface CarRepository {
     fun getCars(): Flow<List<Car>>
+    suspend fun refresh()
     suspend fun getCarById(id: String): Car?
     suspend fun addCar(car: Car)
     suspend fun updateCar(car: Car)

@@ -11,4 +11,5 @@ interface UserPreferencesRepository {
     suspend fun saveSession(login: String, token: String)
     suspend fun clearSession()
     fun getAuthToken(): String?
+    fun getCurrentLogin(): String?
 }

@@ -1,11 +1,10 @@
 package com.example.mechanichelper.data.repository
 
-import android.content.Context
-import androidx.core.content.edit
+import com.example.mechanichelper.data.api.CreateRecommendationRequest
+import com.example.mechanichelper.data.api.DeleteRecommendationsRequest
+import com.example.mechanichelper.data.api.MechanicApi
 import com.example.mechanichelper.domain.RecommendationsRepository
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.example.mechanichelper.domain.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -14,44 +13,44 @@ import javax.inject.Singleton
 
 @Singleton
 class RecommendationsRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    private val mechanicApi: MechanicApi,
+    private val userPreferences: UserPreferencesRepository
 ) : RecommendationsRepository {
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    private val gson = Gson()
-    private val allRecommendations = MutableStateFlow(loadAll())
+    private val cache = MutableStateFlow<Map<String, List<RecommendationEntry>>>(emptyMap())
 
     override fun getRecommendations(carId: String): Flow<List<String>> =
-        allRecommendations.map { it[carId].orEmpty() }
+        cache.map { map -> map[carId].orEmpty().map { it.text } }
+
+    override suspend fun refresh(carId: String) {
+        if (userPreferences.getCurrentLogin() == null) {
+            cache.value = cache.value - carId
+            return
+        }
+        val items = mechanicApi.getRecommendations(carId).map { RecommendationEntry(it.id, it.text) }
+        cache.value = cache.value + (carId to items)
+    }
 
     override suspend fun addRecommendation(carId: String, recommendation: String) {
-        val updated = allRecommendations.value.toMutableMap()
-        updated[carId] = updated[carId].orEmpty() + recommendation
-        allRecommendations.value = updated
-        saveAll(updated)
+        if (userPreferences.getCurrentLogin() == null) return
+        val created = mechanicApi.createRecommendation(
+            carId,
+            CreateRecommendationRequest(text = recommendation)
+        )
+        val current = cache.value[carId].orEmpty()
+        cache.value = cache.value + (carId to (current + RecommendationEntry(created.id, created.text)))
     }
 
     override suspend fun deleteRecommendations(carId: String, selectedIndices: List<Int>) {
-        val updated = allRecommendations.value.toMutableMap()
-        updated[carId] = updated[carId].orEmpty().filterIndexed { index, _ ->
+        if (userPreferences.getCurrentLogin() == null) return
+        val current = cache.value[carId].orEmpty()
+        val ids = selectedIndices.mapNotNull { index -> current.getOrNull(index)?.id }
+        if (ids.isEmpty()) return
+        mechanicApi.deleteRecommendations(carId, DeleteRecommendationsRequest(ids = ids))
+        cache.value = cache.value + (carId to current.filterIndexed { index, _ ->
             !selectedIndices.contains(index)
-        }
-        allRecommendations.value = updated
-        saveAll(updated)
+        })
     }
 
-    private fun loadAll(): Map<String, List<String>> {
-        val json = prefs.getString(KEY_RECOMMENDATIONS, null) ?: return emptyMap()
-        val type = object : TypeToken<Map<String, List<String>>>() {}.type
-        return gson.fromJson(json, type) ?: emptyMap()
-    }
-
-    private fun saveAll(data: Map<String, List<String>>) {
-        prefs.edit { putString(KEY_RECOMMENDATIONS, gson.toJson(data)) }
-    }
-
-    companion object {
-        private const val PREFS_NAME = "car_recommendations"
-        private const val KEY_RECOMMENDATIONS = "car_recommendations_key"
-    }
+    private data class RecommendationEntry(val id: String, val text: String)
 }

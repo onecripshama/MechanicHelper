@@ -2,10 +2,10 @@ package com.example.mechanichelper.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mechanichelper.auth.ApiClient
+import com.example.mechanichelper.auth.AuthApi
 import com.example.mechanichelper.auth.AuthErrorMapper
-import com.example.mechanichelper.auth.AuthResponse
 import com.example.mechanichelper.auth.RegisterRequest
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,11 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import retrofit2.HttpException
+import javax.inject.Inject
 
-class SignUpViewModel : ViewModel() {
+@HiltViewModel
+class SignUpViewModel @Inject constructor(
+    private val authApi: AuthApi
+) : ViewModel() {
 
     data class UiState(
         val isLoading: Boolean = false,
@@ -85,27 +87,26 @@ class SignUpViewModel : ViewModel() {
 
         _uiState.value = UiState(isLoading = true)
 
-        ApiClient.authApi.register(RegisterRequest(login = login, password = password, email = email))
-            .enqueue(object : Callback<AuthResponse> {
-                override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
-                    if (response.isSuccessful && response.body() != null) {
-                        _uiState.value = UiState(isLoading = false)
-                        viewModelScope.launch {
-                            _eventChannel.send(UiEvent.RegistrationSuccess)
-                        }
-                    } else {
-                        val msg = AuthErrorMapper.fromHttp(response, isLogin = false)
-                        _uiState.value = UiState(isLoading = false, errorMessage = msg)
-                    }
+        viewModelScope.launch {
+            try {
+                authApi.register(RegisterRequest(login = login, password = password, email = email))
+                _uiState.value = UiState(isLoading = false)
+                _eventChannel.send(UiEvent.RegistrationSuccess)
+            } catch (e: HttpException) {
+                val response = e.response()
+                val msg = if (response != null) {
+                    AuthErrorMapper.fromHttp(response, isLogin = false)
+                } else {
+                    "Не удалось зарегистрироваться"
                 }
-
-                override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
-                    _uiState.value = UiState(
-                        isLoading = false,
-                        errorMessage = AuthErrorMapper.fromThrowable(t)
-                    )
-                }
-            })
+                _uiState.value = UiState(isLoading = false, errorMessage = msg)
+            } catch (t: Throwable) {
+                _uiState.value = UiState(
+                    isLoading = false,
+                    errorMessage = AuthErrorMapper.fromThrowable(t)
+                )
+            }
+        }
     }
 
     companion object {

@@ -1,13 +1,12 @@
 package com.example.mechanichelper.auth
 
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface AuthApi {
     @POST("login")
-    fun login(@Body request: LoginRequest): Call<AuthResponse>
+    suspend fun login(@Body request: LoginRequest): AuthResponse
 
     @POST("register")
-    fun register(@Body request: RegisterRequest): Call<AuthResponse>
+    suspend fun register(@Body request: RegisterRequest): AuthResponse
 }

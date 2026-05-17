@@ -52,4 +52,6 @@ class UserPreferencesRepositoryImpl @Inject constructor(
     }
 
     override fun getAuthToken(): String? = prefs.getString(KEY_TOKEN, null)?.takeIf { it.isNotBlank() }
+
+    override fun getCurrentLogin(): String? = _profile.value.login.takeIf { it.isNotBlank() }
 }

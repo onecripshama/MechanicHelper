@@ -1,68 +1,50 @@
 package com.example.mechanichelper.data.repository
 
-import android.content.Context
-import androidx.core.content.edit
+import com.example.mechanichelper.data.api.CreateReminderRequest
+import com.example.mechanichelper.data.api.DeleteRemindersRequest
+import com.example.mechanichelper.data.api.MechanicApi
 import com.example.mechanichelper.domain.RemindersRepository
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import dagger.hilt.android.qualifiers.ApplicationContext
+import com.example.mechanichelper.domain.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class RemindersRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    private val mechanicApi: MechanicApi,
+    private val userPreferences: UserPreferencesRepository
 ) : RemindersRepository {
 
-    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    private val gson = Gson()
-    private val remindersFlow = MutableStateFlow(loadReminders())
+    private val _reminders = MutableStateFlow<List<ReminderEntry>>(emptyList())
 
-    private fun loadReminders(): List<String> {
-        val json = prefs.getString(KEY_REMINDERS, null)
-        if (json != null) {
-            val type = object : TypeToken<List<String>>() {}.type
-            return gson.fromJson(json, type) ?: emptyList()
+    override fun getReminders(): Flow<List<String>> =
+        _reminders.map { entries -> entries.map { it.text } }
+
+    override suspend fun refresh() {
+        if (userPreferences.getCurrentLogin() == null) {
+            _reminders.value = emptyList()
+            return
         }
-        return migrateFromLegacyRecommendations()
+        _reminders.value = mechanicApi.getReminders().map { ReminderEntry(it.id, it.text) }
     }
-
-    private fun migrateFromLegacyRecommendations(): List<String> {
-        val legacyPrefs = context.getSharedPreferences("recommendations", Context.MODE_PRIVATE)
-        val legacyJson = legacyPrefs.getString("recommendations_key", null) ?: return emptyList()
-        val type = object : TypeToken<List<String>>() {}.type
-        val legacyList = gson.fromJson<List<String>>(legacyJson, type) ?: return emptyList()
-        if (legacyList.isNotEmpty()) {
-            saveReminders(legacyList)
-            legacyPrefs.edit { remove("recommendations_key") }
-        }
-        return legacyList
-    }
-
-    private fun saveReminders(list: List<String>) {
-        prefs.edit { putString(KEY_REMINDERS, gson.toJson(list)) }
-    }
-
-    override fun getReminders(): Flow<List<String>> = remindersFlow
 
     override suspend fun addReminder(reminder: String) {
-        val updated = remindersFlow.value + reminder
-        remindersFlow.value = updated
-        saveReminders(updated)
+        if (userPreferences.getCurrentLogin() == null) return
+        val created = mechanicApi.createReminder(CreateReminderRequest(text = reminder))
+        _reminders.value = _reminders.value + ReminderEntry(created.id, created.text)
     }
 
     override suspend fun deleteReminders(selectedIndices: List<Int>) {
-        val updated = remindersFlow.value.filterIndexed { index, _ ->
+        if (userPreferences.getCurrentLogin() == null) return
+        val ids = selectedIndices.mapNotNull { index -> _reminders.value.getOrNull(index)?.id }
+        if (ids.isEmpty()) return
+        mechanicApi.deleteReminders(DeleteRemindersRequest(ids = ids))
+        _reminders.value = _reminders.value.filterIndexed { index, _ ->
             !selectedIndices.contains(index)
         }
-        remindersFlow.value = updated
-        saveReminders(updated)
     }
 
-    companion object {
-        private const val PREFS_NAME = "reminders"
-        private const val KEY_REMINDERS = "reminders_key"
-    }
+    private data class ReminderEntry(val id: String, val text: String)
 }

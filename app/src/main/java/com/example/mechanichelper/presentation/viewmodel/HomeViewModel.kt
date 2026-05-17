@@ -48,6 +48,9 @@ class HomeViewModel @Inject constructor(
     init {
         loadCar()
         loadLastPhoto()
+        viewModelScope.launch {
+            recommendationsRepository.refresh(carId)
+        }
     }
 
     private fun loadCar() {

@@ -19,6 +19,10 @@ class RemindersViewModel @Inject constructor(
         .getReminders()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    init {
+        viewModelScope.launch { remindersRepository.refresh() }
+    }
+
     fun addReminder(reminder: String) {
         viewModelScope.launch {
             remindersRepository.addReminder(reminder)

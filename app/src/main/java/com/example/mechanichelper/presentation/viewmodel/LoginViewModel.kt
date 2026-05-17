@@ -2,23 +2,25 @@ package com.example.mechanichelper.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mechanichelper.auth.ApiClient
+import com.example.mechanichelper.auth.AuthApi
 import com.example.mechanichelper.auth.AuthErrorMapper
-import com.example.mechanichelper.auth.AuthResponse
 import com.example.mechanichelper.auth.LoginRequest
+import com.example.mechanichelper.domain.CarRepository
+import com.example.mechanichelper.domain.RemindersRepository
 import com.example.mechanichelper.domain.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repo: UserPreferencesRepository
+    private val repo: UserPreferencesRepository,
+    private val authApi: AuthApi,
+    private val carRepository: CarRepository,
+    private val remindersRepository: RemindersRepository
 ) : ViewModel() {
 
     data class UiState(
@@ -52,28 +54,28 @@ class LoginViewModel @Inject constructor(
 
         _uiState.value = UiState(isLoading = true)
 
-        ApiClient.authApi.login(LoginRequest(login, password))
-            .enqueue(object : Callback<AuthResponse> {
-                override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
-                    val body = response.body()
-                    if (response.isSuccessful && body != null) {
-                        _uiState.value = UiState(isLoading = false)
-                        viewModelScope.launch {
-                            repo.saveSession(login, body.token)
-                            _events.send(UiEvent.LoginSuccess)
-                        }
-                    } else {
-                        val msg = AuthErrorMapper.fromHttp(response, isLogin = true)
-                        _uiState.value = UiState(isLoading = false, errorMessage = msg)
-                    }
+        viewModelScope.launch {
+            try {
+                val response = authApi.login(LoginRequest(login, password))
+                repo.saveSession(login, response.token)
+                carRepository.refresh()
+                remindersRepository.refresh()
+                _uiState.value = UiState(isLoading = false)
+                _events.send(UiEvent.LoginSuccess)
+            } catch (e: HttpException) {
+                val response = e.response()
+                val msg = if (response != null) {
+                    AuthErrorMapper.fromHttp(response, isLogin = true)
+                } else {
+                    "Не удалось войти"
                 }
-
-                override fun onFailure(call: Call<AuthResponse>, t: Throwable) {
-                    _uiState.value = UiState(
-                        isLoading = false,
-                        errorMessage = AuthErrorMapper.fromThrowable(t)
-                    )
-                }
-            })
+                _uiState.value = UiState(isLoading = false, errorMessage = msg)
+            } catch (t: Throwable) {
+                _uiState.value = UiState(
+                    isLoading = false,
+                    errorMessage = AuthErrorMapper.fromThrowable(t)
+                )
+            }
+        }
     }
 }

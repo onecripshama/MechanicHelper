@@ -40,8 +40,15 @@ class CarListViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    init {
+        refresh()
+    }
+
     fun refresh() {
-        refreshTrigger.value++
+        viewModelScope.launch {
+            carRepository.refresh()
+            refreshTrigger.value++
+        }
     }
 
     fun addCar(name: String, mileage: Int) {

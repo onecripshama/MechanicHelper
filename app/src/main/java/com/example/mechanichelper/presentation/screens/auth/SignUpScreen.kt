@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.example.mechanichelper.presentation.components.AuthErrorBanner
 import com.example.mechanichelper.presentation.viewmodel.SignUpViewModel
@@ -17,7 +17,7 @@ import com.example.mechanichelper.presentation.viewmodel.SignUpViewModel
 @Composable
 fun SignUpScreen(
     navController: NavHostController,
-    viewModel: SignUpViewModel = viewModel()
+    viewModel: SignUpViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
