@@ -47,7 +47,12 @@ fun MainScreen(mainNavController: NavHostController) {
             composable(BottomNavScreen.Profile.route) {
                 ProfileScreen(
                     onSettingsClick = { mainNavController.navigate("settings") },
-                    onDeveloperClick = { mainNavController.navigate("developer") }
+                    onDeveloperClick = { mainNavController.navigate("developer") },
+                    onLogout = {
+                        mainNavController.navigate("login") {
+                            popUpTo("main") { inclusive = true }
+                        }
+                    }
                 )
             }
         }

@@ -15,6 +15,7 @@ import javax.inject.Singleton
 
 private const val PREFS_NAME = "user_prefs"
 private const val KEY_LOGIN = "user_login"
+private const val KEY_TOKEN = "auth_token"
 
 @Singleton
 class UserPreferencesRepositoryImpl @Inject constructor(
@@ -23,11 +24,32 @@ class UserPreferencesRepositoryImpl @Inject constructor(
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    private val _profile = MutableStateFlow(UserProfileUi(prefs.getString(KEY_LOGIN, "") ?: ""))
+    private val savedLogin = prefs.getString(KEY_LOGIN, "").orEmpty()
+    private val savedToken = prefs.getString(KEY_TOKEN, "").orEmpty()
+
+    private val _profile = MutableStateFlow(UserProfileUi(savedLogin))
     override val profile: StateFlow<UserProfileUi> = _profile.asStateFlow()
 
-    override suspend fun saveUserLogin(login: String) = withContext(Dispatchers.IO) {
-        prefs.edit { putString(KEY_LOGIN, login) }
+    private val _isLoggedIn = MutableStateFlow(savedToken.isNotBlank())
+    override val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+
+    override suspend fun saveSession(login: String, token: String) = withContext(Dispatchers.IO) {
+        prefs.edit {
+            putString(KEY_LOGIN, login)
+            putString(KEY_TOKEN, token)
+        }
         _profile.value = UserProfileUi(login)
+        _isLoggedIn.value = true
     }
+
+    override suspend fun clearSession() = withContext(Dispatchers.IO) {
+        prefs.edit {
+            remove(KEY_LOGIN)
+            remove(KEY_TOKEN)
+        }
+        _profile.value = UserProfileUi()
+        _isLoggedIn.value = false
+    }
+
+    override fun getAuthToken(): String? = prefs.getString(KEY_TOKEN, null)?.takeIf { it.isNotBlank() }
 }

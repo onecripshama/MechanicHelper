@@ -23,6 +23,7 @@ import com.example.mechanichelper.presentation.viewmodel.ProfileViewModel
 fun ProfileScreen(
     onSettingsClick: () -> Unit,
     onDeveloperClick: () -> Unit,
+    onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val profile by viewModel.profile.collectAsState()
@@ -67,6 +68,16 @@ fun ProfileScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(stringResource(R.string.profile_about_developer))
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = { viewModel.logout(onLogout) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = MaterialTheme.colorScheme.error
+            )
+        ) {
+            Text(stringResource(R.string.profile_logout))
         }
         }
     }

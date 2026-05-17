@@ -55,10 +55,11 @@ class LoginViewModel @Inject constructor(
         ApiClient.authApi.login(LoginRequest(login, password))
             .enqueue(object : Callback<AuthResponse> {
                 override fun onResponse(call: Call<AuthResponse>, response: Response<AuthResponse>) {
-                    if (response.isSuccessful && response.body() != null) {
+                    val body = response.body()
+                    if (response.isSuccessful && body != null) {
                         _uiState.value = UiState(isLoading = false)
                         viewModelScope.launch {
-                            repo.saveUserLogin(login)
+                            repo.saveSession(login, body.token)
                             _events.send(UiEvent.LoginSuccess)
                         }
                     } else {
