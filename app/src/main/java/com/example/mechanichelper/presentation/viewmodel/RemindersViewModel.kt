@@ -2,7 +2,7 @@ package com.example.mechanichelper.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mechanichelper.domain.RecommendationsRepository
+import com.example.mechanichelper.domain.RemindersRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -11,23 +11,23 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RecommendationsViewModel @Inject constructor(
-    private val recommendationsRepository: RecommendationsRepository
+class RemindersViewModel @Inject constructor(
+    private val remindersRepository: RemindersRepository
 ) : ViewModel() {
 
-    val recommendations: StateFlow<List<String>> = recommendationsRepository
-        .getRecommendations()
+    val reminders: StateFlow<List<String>> = remindersRepository
+        .getReminders()
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    fun addRecommendation(recommendation: String) {
+    fun addReminder(reminder: String) {
         viewModelScope.launch {
-            recommendationsRepository.addRecommendation(recommendation)
+            remindersRepository.addReminder(reminder)
         }
     }
 
-    fun deleteRecommendations(selectedIndices: List<Int>) {
+    fun deleteReminders(selectedIndices: List<Int>) {
         viewModelScope.launch {
-            recommendationsRepository.deleteRecommendations(selectedIndices)
+            remindersRepository.deleteReminders(selectedIndices)
         }
     }
 }

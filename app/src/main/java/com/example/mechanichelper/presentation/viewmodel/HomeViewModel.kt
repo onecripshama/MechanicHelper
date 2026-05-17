@@ -4,62 +4,79 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mechanichelper.domain.CarRepository
 import com.example.mechanichelper.domain.PhotoRepository
+import com.example.mechanichelper.domain.RecommendationsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val photoRepository: PhotoRepository,
+    private val carRepository: CarRepository,
+    private val recommendationsRepository: RecommendationsRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    private val carId: String = savedStateHandle.get<String>("carId") ?: ""
+
+    private val _carName = MutableStateFlow("")
+    val carName: StateFlow<String> = _carName.asStateFlow()
 
     private val _carMileage = MutableStateFlow("0")
     val carMileage: StateFlow<String> = _carMileage.asStateFlow()
 
-    private val _recommendation = MutableStateFlow("")
-    val recommendation: StateFlow<String> = _recommendation.asStateFlow()
-
     private val _photoUri = MutableStateFlow<Uri?>(null)
     val photoUri: StateFlow<Uri?> = _photoUri.asStateFlow()
 
+    val recommendations: StateFlow<List<String>> = recommendationsRepository
+        .getRecommendations(carId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     init {
+        loadCar()
         loadLastPhoto()
-        updateRecommendation()
     }
 
-    fun updateMileage(newMileage: String) {
-        _carMileage.value = newMileage
-        updateRecommendation()
+    private fun loadCar() {
+        viewModelScope.launch {
+            val car = carRepository.getCarById(carId) ?: return@launch
+            _carName.value = car.name
+            _carMileage.value = car.mileage.toString()
+        }
     }
 
-    private fun updateRecommendation() {
-        val mileage = _carMileage.value.toIntOrNull() ?: 0
-        _recommendation.value = when {
-            mileage < 5000 -> "Проверяйте уровень жидкостей регулярно"
-            mileage in 5000..15000 -> "Замена масла и фильтров"
-            mileage in 15000..30000 -> "Диагностика тормозной системы и замена масла и фильтров"
-            mileage in 30000..50000 -> "Комплексное ТО"
-            else -> "Полное техническое обслуживание"
+    fun addRecommendation(text: String) {
+        viewModelScope.launch {
+            recommendationsRepository.addRecommendation(carId, text)
+        }
+    }
+
+    fun deleteRecommendations(selectedIndices: List<Int>) {
+        viewModelScope.launch {
+            recommendationsRepository.deleteRecommendations(carId, selectedIndices)
         }
     }
 
     fun takePhoto() {
         viewModelScope.launch {
             try {
-                photoRepository.deleteLastPhoto()
-                // сброс значения перед созданием нового файла
+                photoRepository.deletePhoto(carId)
                 _photoUri.value = null
 
-                val file = photoRepository.createImageFile()
+                val file = photoRepository.createImageFile(carId)
                 val uri = FileProvider.getUriForFile(
                     context,
                     "${context.packageName}.provider",
@@ -75,9 +92,8 @@ class HomeViewModel @Inject constructor(
 
     fun loadLastPhoto() {
         viewModelScope.launch {
-            // Задержка для обхода кэша файловой системы
             delay(150)
-            _photoUri.value = photoRepository.getLastSavedPhotoUri()?.let {
+            _photoUri.value = photoRepository.getSavedPhotoUri(carId)?.let {
                 Uri.parse("$it?t=${System.currentTimeMillis()}")
             }
         }

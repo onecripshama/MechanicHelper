@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.mechanichelper.data.api.User
+import com.example.mechanichelper.presentation.components.BottomNavScreenLayout
 import com.example.mechanichelper.presentation.viewmodel.UsersViewModel
 
 @Composable
@@ -51,17 +52,7 @@ fun UsersScreen(
     val showNoResults by viewModel.showNoResults
     val isSearching by viewModel.isSearching.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
-    ) {
-        Text(
-            text = "Клиенты",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
+    BottomNavScreenLayout(title = "Клиенты") {
         SearchField(
             searchQuery = searchQuery,
             searchHistory = viewModel.searchHistory,

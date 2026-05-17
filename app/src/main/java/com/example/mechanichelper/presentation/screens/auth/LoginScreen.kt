@@ -1,16 +1,15 @@
 package com.example.mechanichelper.presentation.screens.auth
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.example.mechanichelper.presentation.components.AuthErrorBanner
 import com.example.mechanichelper.presentation.viewmodel.LoginViewModel
 
 @Composable
@@ -19,21 +18,17 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
-    var email by remember { mutableStateOf("") }
+    var login by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.eventFlow.collect { event ->
             when (event) {
-                is LoginViewModel.UiEvent.LoginSuccess -> {
-                    navController.navigate("greeting") {
+                LoginViewModel.UiEvent.LoginSuccess -> {
+                    navController.navigate("main") {
                         popUpTo("login") { inclusive = true }
                     }
-                }
-                is LoginViewModel.UiEvent.ShowError -> {
-                    Toast.makeText(context, event.message, Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -46,14 +41,24 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Логин", style = MaterialTheme.typography.headlineMedium)
+        Text(text = "Вход", style = MaterialTheme.typography.headlineMedium)
         Spacer(modifier = Modifier.height(16.dp))
 
+        uiState.errorMessage?.let { message ->
+            AuthErrorBanner(message = message)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
+
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
+            value = login,
+            onValueChange = {
+                login = it
+                viewModel.clearErrors()
+            },
+            label = { Text("Логин") },
             singleLine = true,
+            isError = uiState.loginError != null,
+            supportingText = uiState.loginError?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -61,23 +66,22 @@ fun LoginScreen(
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                password = it
+                viewModel.clearErrors()
+            },
             label = { Text("Пароль") },
             visualTransformation = PasswordVisualTransformation(),
             singleLine = true,
+            isError = uiState.passwordError != null,
+            supportingText = uiState.passwordError?.let { { Text(it) } },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = {
-                if (email.isBlank() || password.isBlank()) {
-                    Toast.makeText(context, "Заполните все поля", Toast.LENGTH_SHORT).show()
-                } else {
-                    viewModel.login(email.trim(), password)
-                }
-            },
+            onClick = { viewModel.login(login.trim(), password) },
             modifier = Modifier.fillMaxWidth(),
             enabled = !uiState.isLoading
         ) {
@@ -90,15 +94,6 @@ fun LoginScreen(
                 )
             }
             Text("Войти")
-        }
-
-        uiState.errorMessage?.let { msg ->
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = msg,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
         }
 
         Spacer(modifier = Modifier.height(16.dp))

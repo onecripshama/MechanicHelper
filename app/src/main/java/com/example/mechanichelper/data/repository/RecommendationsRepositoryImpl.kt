@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,42 +17,41 @@ class RecommendationsRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : RecommendationsRepository {
 
-    private val sharedPreferences = context.getSharedPreferences("recommendations", Context.MODE_PRIVATE)
-    private val recommendationsKey = "recommendations_key"
+    private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     private val gson = Gson()
+    private val allRecommendations = MutableStateFlow(loadAll())
 
-    private val _recommendationsFlow = MutableStateFlow<List<String>>(loadRecommendations())
+    override fun getRecommendations(carId: String): Flow<List<String>> =
+        allRecommendations.map { it[carId].orEmpty() }
 
-    private fun loadRecommendations(): List<String> {
-        val json = sharedPreferences.getString(recommendationsKey, null)
-        return if (json != null) {
-            val type = object : TypeToken<List<String>>() {}.type
-            gson.fromJson(json, type)
-        } else {
-            emptyList()
-        }
+    override suspend fun addRecommendation(carId: String, recommendation: String) {
+        val updated = allRecommendations.value.toMutableMap()
+        updated[carId] = updated[carId].orEmpty() + recommendation
+        allRecommendations.value = updated
+        saveAll(updated)
     }
 
-    private fun saveRecommendations(list: List<String>) {
-        val json = gson.toJson(list)
-        sharedPreferences.edit {
-            putString(recommendationsKey, json)
-        }
-    }
-
-    override fun getRecommendations(): Flow<List<String>> = _recommendationsFlow
-
-    override suspend fun addRecommendation(recommendation: String) {
-        val newList = _recommendationsFlow.value + recommendation
-        _recommendationsFlow.value = newList
-        saveRecommendations(newList)
-    }
-
-    override suspend fun deleteRecommendations(selectedIndices: List<Int>) {
-        val newList = _recommendationsFlow.value.filterIndexed { index, _ ->
+    override suspend fun deleteRecommendations(carId: String, selectedIndices: List<Int>) {
+        val updated = allRecommendations.value.toMutableMap()
+        updated[carId] = updated[carId].orEmpty().filterIndexed { index, _ ->
             !selectedIndices.contains(index)
         }
-        _recommendationsFlow.value = newList
-        saveRecommendations(newList)
+        allRecommendations.value = updated
+        saveAll(updated)
+    }
+
+    private fun loadAll(): Map<String, List<String>> {
+        val json = prefs.getString(KEY_RECOMMENDATIONS, null) ?: return emptyMap()
+        val type = object : TypeToken<Map<String, List<String>>>() {}.type
+        return gson.fromJson(json, type) ?: emptyMap()
+    }
+
+    private fun saveAll(data: Map<String, List<String>>) {
+        prefs.edit { putString(KEY_RECOMMENDATIONS, gson.toJson(data)) }
+    }
+
+    companion object {
+        private const val PREFS_NAME = "car_recommendations"
+        private const val KEY_RECOMMENDATIONS = "car_recommendations_key"
     }
 }

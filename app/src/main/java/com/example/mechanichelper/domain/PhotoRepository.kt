@@ -4,7 +4,7 @@ import android.net.Uri
 import java.io.File
 
 interface PhotoRepository {
-    fun createImageFile(): File
-    fun getLastSavedPhotoUri(): Uri?
-    fun deleteLastPhoto(): Boolean
+    fun createImageFile(carId: String): File
+    fun getSavedPhotoUri(carId: String): Uri?
+    fun deletePhoto(carId: String): Boolean
 }

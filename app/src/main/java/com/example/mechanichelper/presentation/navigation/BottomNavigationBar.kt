@@ -11,7 +11,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     val items = listOf(
         BottomNavScreen.Home,
         BottomNavScreen.Users,
-        BottomNavScreen.Recommendations,
+        BottomNavScreen.Reminders,
         BottomNavScreen.Profile
     )
     NavigationBar {

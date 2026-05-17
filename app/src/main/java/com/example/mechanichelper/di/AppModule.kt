@@ -4,11 +4,15 @@ import android.content.Context
 import com.example.mechanichelper.auth.AuthApi
 import com.example.mechanichelper.data.api.UsersApi
 import com.example.mechanichelper.data.preferences.PreferencesManager
+import com.example.mechanichelper.data.repository.CarRepositoryImpl
 import com.example.mechanichelper.data.repository.PhotoRepositoryImpl
 import com.example.mechanichelper.data.repository.RecommendationsRepositoryImpl
+import com.example.mechanichelper.data.repository.RemindersRepositoryImpl
 import com.example.mechanichelper.data.repository.UserPreferencesRepositoryImpl
+import com.example.mechanichelper.domain.CarRepository
 import com.example.mechanichelper.domain.PhotoRepository
 import com.example.mechanichelper.domain.RecommendationsRepository
+import com.example.mechanichelper.domain.RemindersRepository
 import com.example.mechanichelper.domain.UserPreferencesRepository
 import com.example.mechanichelper.presentation.viewmodel.UsersViewModel
 import dagger.Module
@@ -42,10 +46,14 @@ object AppModule {
     @Provides
     @Singleton
     fun provideRecommendationsRepository(
-        @ApplicationContext context: Context
-    ): RecommendationsRepository {
-        return RecommendationsRepositoryImpl(context)
-    }
+        impl: RecommendationsRepositoryImpl
+    ): RecommendationsRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideRemindersRepository(
+        impl: RemindersRepositoryImpl
+    ): RemindersRepository = impl
 
     @Provides
     @Singleton
@@ -64,6 +72,12 @@ object AppModule {
     fun providePhotoRepository(
         repoImpl: PhotoRepositoryImpl
     ): PhotoRepository = repoImpl
+
+    @Provides
+    @Singleton
+    fun provideCarRepository(
+        impl: CarRepositoryImpl
+    ): CarRepository = impl
 
     @Provides
     @Singleton

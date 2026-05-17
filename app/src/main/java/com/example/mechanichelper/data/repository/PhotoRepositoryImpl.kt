@@ -18,23 +18,18 @@ class PhotoRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : PhotoRepository {
 
-    override fun createImageFile(): File {
-        val timestamp = SimpleDateFormat(
-            "yyyyMMdd_HHmmss",
-            Locale.getDefault()
-        ).format(Date())
-
+    override fun createImageFile(carId: String): File {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         return File(
             context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
-            "CAR_${timestamp}.jpg"
+            "CAR_${carId}_$timestamp.jpg"
         ).apply { createNewFile() }
     }
 
-    override fun getLastSavedPhotoUri(): Uri? {
-        val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-
-        val files = directory?.listFiles { file ->
-            file.name.startsWith("CAR_") && file.extension.equals("jpg", true)
+    override fun getSavedPhotoUri(carId: String): Uri? {
+        val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: return null
+        val files = directory.listFiles { file ->
+            file.name.startsWith("CAR_${carId}_") && file.extension.equals("jpg", true)
         }?.sortedByDescending { it.lastModified() }
 
         return files?.firstOrNull()?.let { file ->
@@ -46,13 +41,12 @@ class PhotoRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun deleteLastPhoto(): Boolean {
-        val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val files = directory?.listFiles { file ->
-            file.name.startsWith("CAR_") && file.extension.equals("jpg", true)
+    override fun deletePhoto(carId: String): Boolean {
+        val directory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: return false
+        val files = directory.listFiles { file ->
+            file.name.startsWith("CAR_${carId}_") && file.extension.equals("jpg", true)
         }?.sortedByDescending { it.lastModified() }
 
-        val fileToDelete = files?.firstOrNull()
-        return fileToDelete?.delete() ?: false
+        return files?.firstOrNull()?.delete() ?: false
     }
 }
