@@ -1,5 +1,6 @@
 package com.example.mechanichelper.data.api
 
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -19,7 +20,7 @@ interface MechanicApi {
     suspend fun updateCar(@Path("id") id: String, @Body body: UpdateCarRequest): CarDto
 
     @DELETE("cars/{id}")
-    suspend fun deleteCar(@Path("id") id: String)
+    suspend fun deleteCar(@Path("id") id: String): Response<Unit>
 
     @GET("reminders")
     suspend fun getReminders(): List<ReminderDto>
@@ -27,8 +28,8 @@ interface MechanicApi {
     @POST("reminders")
     suspend fun createReminder(@Body body: CreateReminderRequest): ReminderDto
 
-    @DELETE("reminders")
-    suspend fun deleteReminders(@Body body: DeleteRemindersRequest)
+    @POST("reminders/delete")
+    suspend fun deleteReminder(@Body body: DeleteByIdRequest): Response<DeleteResponse>
 
     @GET("cars/{carId}/recommendations")
     suspend fun getRecommendations(@Path("carId") carId: String): List<RecommendationDto>
@@ -39,11 +40,11 @@ interface MechanicApi {
         @Body body: CreateRecommendationRequest
     ): RecommendationDto
 
-    @DELETE("cars/{carId}/recommendations")
-    suspend fun deleteRecommendations(
+    @POST("cars/{carId}/recommendations/delete")
+    suspend fun deleteRecommendation(
         @Path("carId") carId: String,
-        @Body body: DeleteRecommendationsRequest
-    )
+        @Body body: DeleteByIdRequest
+    ): Response<DeleteResponse>
 }
 
 data class CarDto(
@@ -71,10 +72,6 @@ data class CreateReminderRequest(
     val text: String
 )
 
-data class DeleteRemindersRequest(
-    val ids: List<String>
-)
-
 data class RecommendationDto(
     val id: String,
     val text: String
@@ -84,6 +81,10 @@ data class CreateRecommendationRequest(
     val text: String
 )
 
-data class DeleteRecommendationsRequest(
-    val ids: List<String>
+data class DeleteByIdRequest(
+    val id: String
+)
+
+data class DeleteResponse(
+    val success: Boolean = true
 )

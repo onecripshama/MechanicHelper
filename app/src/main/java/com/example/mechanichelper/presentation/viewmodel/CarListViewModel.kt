@@ -72,8 +72,12 @@ class CarListViewModel @Inject constructor(
 
     fun deleteCar(id: String) {
         viewModelScope.launch {
-            photoRepository.deletePhoto(id)
-            carRepository.deleteCar(id)
+            try {
+                photoRepository.deletePhoto(id)
+                carRepository.deleteCar(id)
+            } catch (_: Exception) {
+                carRepository.refresh()
+            }
         }
     }
 }

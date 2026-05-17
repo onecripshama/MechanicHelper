@@ -3,6 +3,7 @@ package com.example.mechanichelper.data.repository
 import com.example.mechanichelper.data.api.CreateCarRequest
 import com.example.mechanichelper.data.api.MechanicApi
 import com.example.mechanichelper.data.api.UpdateCarRequest
+import com.example.mechanichelper.data.network.requireSuccess
 import com.example.mechanichelper.domain.CarRepository
 import com.example.mechanichelper.domain.UserPreferencesRepository
 import com.example.mechanichelper.domain.model.Car
@@ -67,7 +68,7 @@ class CarRepositoryImpl @Inject constructor(
 
     override suspend fun deleteCar(id: String) {
         if (userPreferences.getCurrentLogin() == null) return
-        mechanicApi.deleteCar(id)
+        mechanicApi.deleteCar(id).requireSuccess()
         _cars.value = _cars.value.filter { it.id != id }
     }
 }

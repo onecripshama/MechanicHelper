@@ -3,6 +3,7 @@ package com.example.mechanichelper.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mechanichelper.domain.RemindersRepository
+import com.example.mechanichelper.domain.model.TextListItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -15,9 +16,9 @@ class RemindersViewModel @Inject constructor(
     private val remindersRepository: RemindersRepository
 ) : ViewModel() {
 
-    val reminders: StateFlow<List<String>> = remindersRepository
+    val reminders: StateFlow<List<TextListItem>> = remindersRepository
         .getReminders()
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         viewModelScope.launch { remindersRepository.refresh() }
@@ -29,9 +30,9 @@ class RemindersViewModel @Inject constructor(
         }
     }
 
-    fun deleteReminders(selectedIndices: List<Int>) {
+    fun deleteReminders(ids: List<String>) {
         viewModelScope.launch {
-            remindersRepository.deleteReminders(selectedIndices)
+            remindersRepository.deleteReminders(ids)
         }
     }
 }

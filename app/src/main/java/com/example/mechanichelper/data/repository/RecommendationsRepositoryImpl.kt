@@ -1,10 +1,12 @@
 package com.example.mechanichelper.data.repository
 
 import com.example.mechanichelper.data.api.CreateRecommendationRequest
-import com.example.mechanichelper.data.api.DeleteRecommendationsRequest
+import com.example.mechanichelper.data.api.DeleteByIdRequest
 import com.example.mechanichelper.data.api.MechanicApi
+import com.example.mechanichelper.data.network.requireSuccess
 import com.example.mechanichelper.domain.RecommendationsRepository
 import com.example.mechanichelper.domain.UserPreferencesRepository
+import com.example.mechanichelper.domain.model.TextListItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -17,17 +19,19 @@ class RecommendationsRepositoryImpl @Inject constructor(
     private val userPreferences: UserPreferencesRepository
 ) : RecommendationsRepository {
 
-    private val cache = MutableStateFlow<Map<String, List<RecommendationEntry>>>(emptyMap())
+    private val cache = MutableStateFlow<Map<String, List<TextListItem>>>(emptyMap())
 
-    override fun getRecommendations(carId: String): Flow<List<String>> =
-        cache.map { map -> map[carId].orEmpty().map { it.text } }
+    override fun getRecommendations(carId: String): Flow<List<TextListItem>> =
+        cache.map { map -> map[carId].orEmpty() }
 
     override suspend fun refresh(carId: String) {
         if (userPreferences.getCurrentLogin() == null) {
             cache.value = cache.value - carId
             return
         }
-        val items = mechanicApi.getRecommendations(carId).map { RecommendationEntry(it.id, it.text) }
+        val items = mechanicApi.getRecommendations(carId).map { dto ->
+            TextListItem(id = dto.id, text = dto.text)
+        }
         cache.value = cache.value + (carId to items)
     }
 
@@ -38,19 +42,18 @@ class RecommendationsRepositoryImpl @Inject constructor(
             CreateRecommendationRequest(text = recommendation)
         )
         val current = cache.value[carId].orEmpty()
-        cache.value = cache.value + (carId to (current + RecommendationEntry(created.id, created.text)))
+        cache.value = cache.value + (carId to (current + TextListItem(created.id, created.text)))
     }
 
-    override suspend fun deleteRecommendations(carId: String, selectedIndices: List<Int>) {
-        if (userPreferences.getCurrentLogin() == null) return
+    override suspend fun deleteRecommendations(carId: String, ids: List<String>) {
+        if (userPreferences.getCurrentLogin() == null || ids.isEmpty()) return
+
+        val idsToDelete = ids.toSet()
         val current = cache.value[carId].orEmpty()
-        val ids = selectedIndices.mapNotNull { index -> current.getOrNull(index)?.id }
-        if (ids.isEmpty()) return
-        mechanicApi.deleteRecommendations(carId, DeleteRecommendationsRequest(ids = ids))
-        cache.value = cache.value + (carId to current.filterIndexed { index, _ ->
-            !selectedIndices.contains(index)
-        })
-    }
 
-    private data class RecommendationEntry(val id: String, val text: String)
+        for (id in idsToDelete) {
+            mechanicApi.deleteRecommendation(carId, DeleteByIdRequest(id = id)).requireSuccess()
+        }
+        cache.value = cache.value + (carId to current.filter { it.id !in idsToDelete })
+    }
 }

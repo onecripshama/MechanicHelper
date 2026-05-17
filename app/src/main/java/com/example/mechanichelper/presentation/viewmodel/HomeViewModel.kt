@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.mechanichelper.domain.CarRepository
 import com.example.mechanichelper.domain.PhotoRepository
 import com.example.mechanichelper.domain.RecommendationsRepository
+import com.example.mechanichelper.domain.model.TextListItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
@@ -41,7 +42,7 @@ class HomeViewModel @Inject constructor(
     private val _photoUri = MutableStateFlow<Uri?>(null)
     val photoUri: StateFlow<Uri?> = _photoUri.asStateFlow()
 
-    val recommendations: StateFlow<List<String>> = recommendationsRepository
+    val recommendations: StateFlow<List<TextListItem>> = recommendationsRepository
         .getRecommendations(carId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -67,9 +68,9 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deleteRecommendations(selectedIndices: List<Int>) {
+    fun deleteRecommendations(ids: List<String>) {
         viewModelScope.launch {
-            recommendationsRepository.deleteRecommendations(carId, selectedIndices)
+            recommendationsRepository.deleteRecommendations(carId, ids)
         }
     }
 

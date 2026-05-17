@@ -131,7 +131,7 @@ fun HomeScreen(
                     dialogTitle = "Новая рекомендация",
                     dialogFieldLabel = "Введите рекомендацию",
                     onAdd = viewModel::addRecommendation,
-                    onDeleteSelected = viewModel::deleteRecommendations
+                    onDeleteSelected = viewModel::deleteRecommendations,
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))

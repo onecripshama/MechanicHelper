@@ -7,66 +7,74 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.mechanichelper.domain.model.TextListItem
 
 @Composable
 fun EditableItemsList(
-    items: List<String>,
+    items: List<TextListItem>,
     addButtonText: String,
     dialogTitle: String,
     dialogFieldLabel: String,
     onAdd: (String) -> Unit,
-    onDeleteSelected: (List<Int>) -> Unit,
+    onDeleteSelected: (List<String>) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var itemText by remember { mutableStateOf("") }
-    var selectedIndices by remember { mutableStateOf(setOf<Int>()) }
+    var selectedIds by remember { mutableStateOf(setOf<String>()) }
+
+    LaunchedEffect(items) {
+        val validIds = items.map { it.id }.toSet()
+        selectedIds = selectedIds.intersect(validIds)
+    }
 
     Column(modifier = modifier.fillMaxWidth()) {
-        items.forEachIndexed { index, item ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
-            ) {
-                Row(
+        items.forEach { item ->
+            key(item.id) {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(vertical = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
                 ) {
-                    Checkbox(
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = MaterialTheme.colorScheme.onTertiaryContainer
-                        ),
-                        checked = selectedIndices.contains(index),
-                        onCheckedChange = { isChecked ->
-                            selectedIndices = if (isChecked) {
-                                selectedIndices + index
-                            } else {
-                                selectedIndices - index
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            ),
+                            checked = selectedIds.contains(item.id),
+                            onCheckedChange = { isChecked ->
+                                selectedIds = if (isChecked) {
+                                    selectedIds + item.id
+                                } else {
+                                    selectedIds - item.id
+                                }
                             }
-                        }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = item,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = item.text,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
             }
         }
 
-        if (selectedIndices.isNotEmpty()) {
+        if (selectedIds.isNotEmpty()) {
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = {
-                    onDeleteSelected(selectedIndices.toList())
-                    selectedIndices = emptySet()
+                    onDeleteSelected(selectedIds.toList())
+                    selectedIds = emptySet()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Red)

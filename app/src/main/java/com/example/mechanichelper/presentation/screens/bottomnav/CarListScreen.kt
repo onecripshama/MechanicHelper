@@ -115,8 +115,9 @@ fun CarListScreen(
             },
             onDelete = editingCar?.let { car ->
                 {
-                    viewModel.deleteCar(car.id)
                     showFormDialog = false
+                    editingCar = null
+                    viewModel.deleteCar(car.id)
                 }
             }
         )
